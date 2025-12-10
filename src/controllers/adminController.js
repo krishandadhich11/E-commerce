@@ -1,41 +1,94 @@
 import Order from "../models/Order.js";
 import Product from "../models/Product.js";
+import User from "../models/User.js";
+import { paginate } from "../utils/pagination.js";
 
+//  Dashboard – Sales Summary
 export const salesSummary = async (req, res) => {
-  // total sales, orders count, top products
-  const totals = await Order.aggregate([
+  const totalOrders = await Order.countDocuments();
+  const totalUsers = await User.countDocuments();
+  const totalProducts = await Product.countDocuments();
+
+  const revenueAgg = await Order.aggregate([
     { $match: { status: { $in: ["paid", "shipped", "completed"] } } },
-    { $unwind: "$items" },
-    {
-      $group: {
-        _id: null,
-        totalSales: {
-          $sum: { $multiply: ["$items.qty", "$items.priceAtPurchase"] },
-        },
-        orders: { $sum: 1 },
-      },
+    { $group: { _id: null, totalRevenue: { $sum: "$total" } } },
+  ]);
+
+  const totalRevenue = revenueAgg[0]?.totalRevenue || 0;
+
+  res.json({
+    success: true,
+    stats: {
+      totalRevenue,
+      totalOrders,
+      totalUsers,
+      totalProducts,
     },
-  ]);
-
-  const topProducts = await Order.aggregate([
-    { $unwind: "$items" },
-    { $group: { _id: "$items.product", qty: { $sum: "$items.qty" } } },
-    { $sort: { qty: -1 } },
-    { $limit: 5 },
-  ]);
-
-  res.json({ totals: totals[0] || { totalSales: 0, orders: 0 }, topProducts });
+  });
 };
 
-export const inventoryList = async (req, res) => {
-  const products = await Product.find().select("name sku inventory");
-  res.json(products);
-};
-
+//  Get All Orders with Pagination
 export const ordersList = async (req, res) => {
+  const { page, limit, skip } = paginate(req);
+
+  const total = await Order.countDocuments();
+
   const orders = await Order.find()
     .populate("user")
     .sort({ createdAt: -1 })
-    .limit(200);
-  res.json(orders);
+    .skip(skip)
+    .limit(limit);
+
+  res.json({
+    success: true,
+    page,
+    limit,
+    total,
+    totalPages: Math.ceil(total / limit),
+    orders,
+  });
+};
+
+//  Inventory Management with Pagination
+export const inventoryList = async (req, res) => {
+  const { page, limit, skip } = paginate(req);
+
+  const total = await Product.countDocuments();
+
+  const products = await Product.find()
+    .select("name sku inventory")
+    .skip(skip)
+    .limit(limit)
+    .sort({ createdAt: -1 });
+
+  res.json({
+    success: true,
+    page,
+    limit,
+    total,
+    totalPages: Math.ceil(total / limit),
+    products,
+  });
+};
+
+//  Get Users List (Admin)
+export const usersList = async (req, res) => {
+  const { page, limit, skip } = paginate(req);
+
+  const total = await User.countDocuments();
+
+  const users = await User.find()
+    .select("-password")
+    .skip(skip)
+    .limit(limit)
+    .sort({ createdAt: -1 });
+
+  res.json({
+    success: true,
+    page,
+    limit,
+    total,
+    totalPages: Math.ceil(total / limit),
+    users,
+  });
 };

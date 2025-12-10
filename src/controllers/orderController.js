@@ -3,7 +3,6 @@ import Product from "../models/Product.js";
 import Cart from "../models/Cart.js";
 import Order from "../models/Order.js";
 
-// Place order: IMPORTANT - uses MongoDB transaction to deduct inventory atomically
 export const placeOrder = async (req, res) => {
   const session = await mongoose.startSession();
   try {
