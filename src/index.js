@@ -4,9 +4,9 @@ import morgan from "morgan";
 import "express-async-errors";
 import { connectDB } from "./config/db.js";
 import authRoutes from "./routes/auth.js";
-import productRoutes from "./routes/products.js";
+import productRoutes from "./routes/product.js";
 import cartRoutes from "./routes/cart.js";
-import orderRoutes from "./routes/orders.js";
+import orderRoutes from "./routes/order.js";
 import adminRoutes from "./routes/admin.js";
 import errorHandler from "./middleware/errorHandler.js";
 
