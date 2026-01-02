@@ -35,6 +35,9 @@ export const login = async (req, res) => {
   const { email, password } = req.body;
 
   const user = await User.findOne({ email }).select("+password");
+  //.select("+password")
+  // ✔ forces Mongoose to include password
+  // ✔ needed for comparison during login
   if (!user || !(await user.matchPassword(password))) {
     return res.status(401).json({ message: "Invalid credentials" });
   }

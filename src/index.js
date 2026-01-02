@@ -13,7 +13,8 @@ import errorHandler from "./middleware/errorHandler.js";
 dotenv.config();
 const app = express();
 app.use(express.json());
-if (process.env.NODE_ENV !== "production") app.use(morgan("dev"));
+if (process.env.NODE_ENV !== "production") app.use(morgan("dev")); //Morgan logs information about every request that comes.
+// Run Morgan logging only in development, not in production.
 
 app.use("/api/auth", authRoutes);
 app.use("/api/products", productRoutes);
